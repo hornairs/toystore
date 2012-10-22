@@ -63,7 +63,6 @@ module Toy
   end
 
   autoload 'Attribute',               'toy/attribute'
-  autoload 'Attribute',               'toy/attribute'
   autoload 'Attributes',              'toy/attributes'
   autoload 'Caching',                 'toy/caching'
   autoload 'Callbacks',               'toy/callbacks'
@@ -88,6 +87,8 @@ module Toy
   autoload 'Reference',               'toy/reference'
   autoload 'References',              'toy/references'
   autoload 'Identity',                'toy/identity'
+  autoload 'Indices',                'toy/indices'
+  autoload 'Index',                   'toy/index'
 
   module Identity
     autoload 'AbstractKeyFactory', 'toy/identity/abstract_key_factory'

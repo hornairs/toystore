@@ -18,6 +18,7 @@ module Toy
       include Lists
       include References
       include AssociationSerialization
+      include Indices
 
       include IdentityMap
       include Caching
