@@ -4,6 +4,7 @@ module Toy
 
     module ClassMethods
       def get(id)
+        Toy.logger.info "[ToyStore] #{self.name} GET #{id}"
         if (attrs = adapter.read(id))
           load(id, attrs)
         end
@@ -14,6 +15,7 @@ module Toy
       end
 
       def get_multi(*ids)
+        Toy.logger.info "[ToyStore] #{self.name} GET MULTI #{ids.join(' ')}"
         ids.flatten.map { |id| get(id) }
       end
 

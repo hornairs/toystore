@@ -98,6 +98,7 @@ module Toy
     end
 
     def persist
+      Toy.logger.info "[ToyStore] #{self.class.name} SET #{id}, #{persisted_attributes.inspect}"
       adapter.write(id, persisted_attributes)
     end
   end
