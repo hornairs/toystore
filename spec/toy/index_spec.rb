@@ -4,9 +4,20 @@ describe Toy::Index do
   uses_constants('User', 'Student', 'Friendship')
 
   before do
+    @redis = Redis.new
+
     User.attribute(:ssn, String)
+    User.adapter :redis, @redis
+    Student.adapter :redis, @redis
+    Friendship.adapter :redis, @redis
+
     @index = User.index(:ssn)
   end
+
+  after do
+    @redis.flushall
+  end
+
   let(:index) { @index }
 
   it "has a model" do
@@ -59,7 +70,7 @@ describe Toy::Index do
       let(:user) { @user }
 
       it "creates key for indexed value" do
-        User.adapter.should be_key("User:ssn:f6edc9155d79e311ad2d4a6e1b54004f31497f4c")
+        @redis.smembers("User:ssn:f6edc9155d79e311ad2d4a6e1b54004f31497f4c").should_not be_empty
       end
 
       it "adds instance id to index array" do
@@ -74,7 +85,7 @@ describe Toy::Index do
       end
 
       it "adds both instances to index" do
-        User.get_index(:ssn, '555-00-1234').should == [@user1.id, @user2.id]
+        User.get_index(:ssn, '555-00-1234').sort.should == [@user1.id, @user2.id].sort
       end
     end
 
@@ -169,7 +180,7 @@ describe Toy::Index do
     describe "creating with index" do
       it "creates key for indexed values sorted" do
         sha_value = Digest::SHA1.hexdigest([user1.id, user2.id].sort.join(''))
-        Friendship.adapter.should be_key("Friendship:user_ids:#{sha_value}")
+        @redis.smembers("Friendship:user_ids:#{sha_value}").should_not be_empty
       end
 
       it "adds instance id to index array" do

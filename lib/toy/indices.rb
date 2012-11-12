@@ -21,36 +21,30 @@ module Toy
 
       def get_index(name, value)
         key = index_key(name, value)
-        adapter.read(key) || []
+        adapter.client.smembers(key) || []
       end
 
       def create_index(name, value, id)
         key = index_key(name, value)
-        ids = get_index(name, value)
-        ids.push(id) unless ids.include?(id)
-        adapter.write(key, ids)
+        adapter.client.sadd(key, id)
       end
 
       def destroy_index(name, value, id)
         key = index_key(name, value)
-        ids = get_index(name, value)
-        ids.delete(id)
-        adapter.write(key, ids)
+        adapter.client.srem(key, id)
       end
     end
 
-    module InstanceMethods
-      def indices
-        self.class.indices
-      end
+    def indices
+      self.class.indices
+    end
 
-      def create_index(*args)
-        self.class.create_index(*args)
-      end
+    def create_index(*args)
+      self.class.create_index(*args)
+    end
 
-      def destroy_index(*args)
-        self.class.destroy_index(*args)
-      end
+    def destroy_index(*args)
+      self.class.destroy_index(*args)
     end
   end
 end

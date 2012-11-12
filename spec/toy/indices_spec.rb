@@ -3,6 +3,11 @@ require 'helper'
 describe Toy::Indices do
   uses_constants('User')
 
+  before do
+    @redis = Redis.new
+    User.adapter :redis, @redis
+  end
+
   it "defaults lists to empty hash" do
     User.indices.should == {}
   end
@@ -52,13 +57,13 @@ describe Toy::Indices do
     before do
       User.attribute(:email, String)
       User.index(:email)
-      User.create_index(:email, 'taco@bell.com', 1)
-      User.create_index(:email, 'taco@bell.com', 2)
+      User.create_index(:email, 'taco@bell.com', "1")
+      User.create_index(:email, 'taco@bell.com', "2")
       @index = User.get_index(:email, 'taco@bell.com')
     end
 
     it "returns decoded array" do
-      @index.should == [1, 2]
+      @index.should == ["1", "2"]
     end
   end
 
@@ -78,11 +83,11 @@ describe Toy::Indices do
     before do
       User.attribute(:email, String)
       User.index(:email)
-      User.create_index(:email, 'taco@bell.com', 1)
+      User.create_index(:email, 'taco@bell.com', "1")
     end
 
     it "stores id in array" do
-      User.get_index(:email, 'taco@bell.com').should == [1]
+      User.get_index(:email, 'taco@bell.com').should == ["1"]
     end
   end
 
@@ -90,13 +95,13 @@ describe Toy::Indices do
     before do
       User.attribute(:email, String)
       User.index(:email)
-      User.create_index(:email, 'taco@bell.com', 1)
-      User.create_index(:email, 'taco@bell.com', 2)
-      User.create_index(:email, 'taco@bell.com', 3)
+      User.create_index(:email, 'taco@bell.com', "1")
+      User.create_index(:email, 'taco@bell.com', "2")
+      User.create_index(:email, 'taco@bell.com', "3")
     end
 
     it "stores each value in array" do
-      User.get_index(:email, 'taco@bell.com').should == [1, 2, 3]
+      User.get_index(:email, 'taco@bell.com').should == ["1", "2", "3"]
     end
   end
 
@@ -104,13 +109,13 @@ describe Toy::Indices do
     before do
       User.attribute(:email, String)
       User.index(:email)
-      User.create_index(:email, 'taco@bell.com', 1)
-      User.create_index(:email, 'taco@bell.com', 2)
-      User.create_index(:email, 'taco@bell.com', 1)
+      User.create_index(:email, 'taco@bell.com', "1")
+      User.create_index(:email, 'taco@bell.com', "2")
+      User.create_index(:email, 'taco@bell.com', "1")
     end
 
     it "stores value only once and doesn't change order" do
-      User.get_index(:email, 'taco@bell.com').should == [1, 2]
+      User.get_index(:email, 'taco@bell.com').should == ["1", "2"]
     end
   end
 
@@ -118,7 +123,7 @@ describe Toy::Indices do
     before do
       User.attribute(:email, String)
       User.index(:email)
-      User.destroy_index(:email, 'taco@bell.com', 1)
+      User.destroy_index(:email, 'taco@bell.com', "1")
     end
 
     it "sets index to empty array" do
@@ -130,8 +135,8 @@ describe Toy::Indices do
     before do
       User.attribute(:email, String)
       User.index(:email)
-      User.create_index(:email, 'taco@bell.com', 1)
-      User.destroy_index(:email, 'taco@bell.com', 1)
+      User.create_index(:email, 'taco@bell.com', "1")
+      User.destroy_index(:email, 'taco@bell.com', "1")
     end
 
     it "removes the value from the index" do
