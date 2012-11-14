@@ -4,9 +4,10 @@ module Toy
 
     module ClassMethods
       def get(id)
-        Toy.logger.info "[ToyStore] #{self.name} GET #{id}"
-        if (attrs = adapter.read(id))
-          load(id, attrs)
+        Toy.log_with_duration("#{self.name} GET #{id}") do
+          if (attrs = adapter.read(id))
+            load(id, attrs)
+          end
         end
       end
 
@@ -15,8 +16,9 @@ module Toy
       end
 
       def get_multi(*ids)
-        Toy.logger.info "[ToyStore] #{self.name} GET MULTI #{ids.join(' ')}"
-        ids.flatten.map { |id| get(id) }
+        Toy.log_with_duration("#{self.name} GET MULTI #{ids.join(' ')}") do
+          ids.flatten.map { |id| get(id) }
+        end
       end
 
       def get_or_new(id)

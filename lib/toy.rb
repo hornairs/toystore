@@ -1,5 +1,6 @@
 require 'set'
 require 'pathname'
+require 'benchmark'
 require 'forwardable'
 require 'digest/sha1'
 
@@ -56,6 +57,15 @@ module Toy
 
   def key_factory
     @key_factory ||= Toy::Identity::UUIDKeyFactory.new
+  end
+
+  def log_with_duration(statement)
+    result = nil
+    duration_in_seconds = Benchmark.realtime do
+      result = yield
+    end
+    logger.info "[ToyStore] #{statement}, (#{duration_in_seconds} ms)"
+    result
   end
 
   module Middleware
