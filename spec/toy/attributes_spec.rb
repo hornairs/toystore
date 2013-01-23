@@ -3,51 +3,9 @@ require 'helper'
 describe Toy::Attributes do
   uses_objects('User', 'Game')
 
-  describe "including" do
-    it "adds id attribute" do
-      User.attributes.keys.should == ['id']
-    end
-  end
-
   describe ".attributes" do
-    it "defaults to hash with id" do
-      User.attributes.keys.should == ['id']
-    end
-  end
-
-  describe "#persisted_attributes" do
-    before do
-      @over    = Game.attribute(:over, Boolean)
-      @score   = Game.attribute(:creator_score, Integer, :virtual => true)
-      @abbr    = Game.attribute(:super_secret_hash, String, :abbr => :ssh)
-      @rewards = Game.attribute(:rewards, Set)
-      @game    = Game.new({
-        :over          => true,
-        :creator_score => 20,
-        :rewards       => %w(twigs berries).to_set,
-        :ssh           => 'h4x',
-      })
-    end
-
-    it "includes persisted attributes" do
-      @game.persisted_attributes.should have_key('over')
-    end
-
-    it "includes abbreviated names for abbreviated attributes" do
-      @game.persisted_attributes.should have_key('ssh')
-    end
-
-    it "does not include full names for abbreviated attributes" do
-      @game.persisted_attributes.should_not have_key('super_secret_hash')
-    end
-
-    it "does not include virtual attributes" do
-      @game.persisted_attributes.should_not have_key(:creator_score)
-    end
-
-    it "includes to_store values for attributes" do
-      @game.persisted_attributes['rewards'].should be_instance_of(Array)
-      @game.persisted_attributes['rewards'].should == @rewards.to_store(@game.rewards)
+    it "defaults to empty hash" do
+      User.attributes.should eq({})
     end
   end
 
@@ -63,6 +21,22 @@ describe Toy::Attributes do
 
     it "excludes attributes without a default" do
       User.defaulted_attributes.should_not include(@name)
+    end
+
+    it "memoizes after first call" do
+      User.should_receive(:attributes).once.and_return({
+        'name' => @name,
+        'age' => @age,
+      })
+      User.defaulted_attributes
+      User.defaulted_attributes
+      User.defaulted_attributes
+    end
+
+    it "is unmemoized when declaring a new attribute" do
+      User.defaulted_attributes
+      age = User.attribute :location, String, :default => 'IN'
+      User.defaulted_attributes.map(&:name).sort.should eq(%w[age location])
     end
   end
 
@@ -90,17 +64,6 @@ describe Toy::Attributes do
       User.attribute :age,  Integer
     end
 
-    it "writes id" do
-      id = User.new.id
-      id.should_not be_nil
-      id.size.should == 36
-    end
-
-    it "does not attempt to set id if already set" do
-      user = User.new(:id => 'frank')
-      user.id.should == 'frank'
-    end
-
     it "sets attributes" do
       instance = User.new(:name => 'John', :age => 28)
       instance.name.should == 'John'
@@ -118,9 +81,9 @@ describe Toy::Attributes do
   end
 
   describe "#attributes" do
-    it "defaults to hash with id" do
-      attrs = ToyStore().new.attributes
-      attrs.keys.should == ['id']
+    it "defaults to empty hash" do
+      attrs = ToyObject().new.attributes
+      attrs.should eq({})
     end
 
     it "includes all attributes that are not nil" do
@@ -128,7 +91,6 @@ describe Toy::Attributes do
       User.attribute(:active, Boolean, :default => true)
       user = User.new
       user.attributes.should == {
-        'id'     => user.id,
         'active' => true,
       }
     end

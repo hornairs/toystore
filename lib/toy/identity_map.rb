@@ -1,5 +1,4 @@
 module Toy
-
   module IdentityMap
     extend ActiveSupport::Concern
 
@@ -45,7 +44,7 @@ module Toy
     end
 
     module ClassMethods
-      def get(id)
+      def get(id, options = nil)
         get_from_identity_map(id) || super
       end
 

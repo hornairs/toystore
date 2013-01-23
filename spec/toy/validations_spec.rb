@@ -82,12 +82,6 @@ describe Toy::Validations do
       end
     end
 
-    context "with invalid option" do
-      it "raises error" do
-        lambda { User.new.save(:foobar => '') }.should raise_error
-      end
-    end
-
     context "with :validate option" do
       before do
         User.validates_presence_of(:name)
@@ -145,6 +139,19 @@ describe Toy::Validations do
       it "raises an RecordInvalid" do
         lambda { User.create! }.should raise_error(Toy::RecordInvalid)
       end
+    end
+  end
+
+  context "validating presence of uuid attribute" do
+    before do
+      User.attribute :app_id, SimpleUUID::UUID
+      User.validates_presence_of :app_id
+    end
+
+    it "is invalid if nil" do
+      user = User.new(app_id: nil)
+      user.should_not be_valid
+      user.errors[:app_id].should include("can't be blank")
     end
   end
 end

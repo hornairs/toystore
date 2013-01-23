@@ -30,6 +30,15 @@ module Toy
       def destroy(*ids)
         ids.each { |id| get(id).try(:destroy) }
       end
+
+      def persisted_attributes
+        @persisted_attributes ||= attributes.values.select(&:persisted?)
+      end
+
+      def attribute(*args)
+        @persisted_attributes = nil
+        super
+      end
     end
 
     def adapter
@@ -81,7 +90,34 @@ module Toy
 
     def delete
       @_destroyed = true
-      adapter.delete(id)
+      adapter.delete(persisted_id)
+    end
+
+    # Public: Choke point for overriding what id is used to write and delete.
+    def persisted_id
+      attribute_name = 'id'
+      attribute = attribute_instance(attribute_name)
+      attribute_value = read_attribute(attribute_name)
+      attribute.to_store(attribute_value)
+    end
+
+    # Public: Choke point for overriding what attributes get stored.
+    def persisted_attributes
+      attributes = {}
+      self.class.persisted_attributes.each do |attribute|
+        if (value = attribute.to_store(read_attribute(attribute.name)))
+          attributes[attribute.persisted_name] = value
+        end
+      end
+      attributes
+    end
+
+    # Public: Choke point for overriding how data gets written.
+    def persist
+      attrs = persisted_attributes
+      Toy.log_with_duration("#{self.class.name} SET #{id}, #{attrs.inspect}") do
+        adapter.write(persisted_id, attrs)
+      end
     end
 
     private
@@ -97,10 +133,5 @@ module Toy
       true
     end
 
-    def persist
-      Toy.log_with_duration("#{self.class.name} SET #{id}, #{persisted_attributes.inspect}") do
-        adapter.write(id, persisted_attributes)
-      end
-    end
   end
 end

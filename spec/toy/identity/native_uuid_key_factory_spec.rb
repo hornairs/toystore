@@ -1,14 +1,15 @@
 require 'helper'
 
-describe Toy::Identity::UUIDKeyFactory do
+describe Toy::Identity::NativeUUIDKeyFactory do
   uses_constants('User')
 
-  it "should use String as key_type" do
-    subject.key_type.should be(String)
+  it "should use SimpleUUID::UUID as key_type" do
+    subject.key_type.should be(SimpleUUID::UUID)
   end
 
   it "should use uuid for next_key" do
-    subject.next_key(nil).length.should == 36
+    result = subject.next_key(nil)
+    result.should be_instance_of(SimpleUUID::UUID)
   end
 
   describe "#eql?" do
@@ -45,15 +46,15 @@ describe Toy::Identity::UUIDKeyFactory do
 
   describe "Declaring key to be uuid" do
     before(:each) do
-      User.key(:uuid)
+      User.key(:native_uuid)
     end
 
-    it "returns String as .key_type" do
-      User.key_type.should be(String)
+    it "returns SimpleUUID::UUID as .key_type" do
+      User.key_type.should be(SimpleUUID::UUID)
     end
 
-    it "sets id attribute to String type" do
-      User.attributes['id'].type.should be(String)
+    it "sets id attribute to SimpleUUID::UUID type" do
+      User.attributes['id'].type.should be(SimpleUUID::UUID)
     end
   end
 end

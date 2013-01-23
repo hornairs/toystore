@@ -4,8 +4,6 @@ module Toy
     include ActiveModel::AttributeMethods
 
     included do
-      include Identity
-
       # blank suffix is no longer needed in 3.2+
       # open to suggestions on how to do this better
       if ActiveSupport::VERSION::MAJOR == 3 && ActiveSupport::VERSION::MINOR < 2
@@ -22,10 +20,11 @@ module Toy
       end
 
       def defaulted_attributes
-        attributes.values.select(&:default?)
+        @defaulted_attributes ||= attributes.values.select(&:default?)
       end
 
       def attribute(key, type, options = {})
+        @defaulted_attributes = nil
         attribute = Attribute.new(self, key, type, options)
         define_attribute_methods [attribute.name]
         attribute
@@ -39,24 +38,10 @@ module Toy
     def initialize(attrs={})
       initialize_attributes
       self.attributes = attrs
-      write_attribute :id, self.class.next_key(self) unless id?
-    end
-
-    def id
-      read_attribute(:id)
     end
 
     def attributes
       @attributes
-    end
-
-    def persisted_attributes
-      {}.tap do |attrs|
-        self.class.attributes.except('id').each do |name, attribute|
-          next if attribute.virtual?
-          attrs[attribute.persisted_name] = attribute.to_store(read_attribute(attribute.name))
-        end
-      end
     end
 
     def attributes=(attrs, *)
@@ -86,10 +71,8 @@ module Toy
 
     def write_attribute(key, value)
       key = key.to_s
-      attribute = self.class.attributes.fetch(key) {
-        raise AttributeNotDefined, "#{self.class} does not have attribute #{key}"
-      }
-      @attributes[key.to_s] = attribute.from_store(value)
+      attribute = attribute_instance(key)
+      @attributes[key] = attribute.from_store(value)
     end
 
     def attribute_method?(key)
@@ -106,6 +89,12 @@ module Toy
 
     def attribute?(key)
       read_attribute(key).present?
+    end
+
+    def attribute_instance(key)
+      self.class.attributes.fetch(key) {
+        raise AttributeNotDefined, "#{self.class} does not have attribute #{key}"
+      }
     end
 
     def initialize_attributes

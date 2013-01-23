@@ -18,5 +18,5 @@ group(:test) do
   gem 'timecop',    '~> 0.3.0'
   gem 'tzinfo',     '~> 0.3.0'
   gem 'rack-test',  '~> 0.6.0'
-  gem 'adapter-redis'
+  gem 'adapter-redis', :git => 'git://github.com/hornairs/adapter-redis.git'
 end

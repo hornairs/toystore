@@ -5,6 +5,7 @@ describe Toy::Indices do
 
   before do
     @redis = Redis.new
+    @redis.flushdb
     User.adapter :redis, @redis
   end
 
