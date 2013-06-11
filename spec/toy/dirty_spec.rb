@@ -85,4 +85,20 @@ describe Toy::Dirty do
       User.new.name.should == 'John'
     end
   end
+
+  describe "saving an existing record" do
+    uses_constants('User')
+
+    before do
+      User.attribute(:name, String)
+      @user = User.new
+      @user.name = 'John'
+      @user.save
+    end
+
+    it "should not write to the adapter if nothing has changed" do
+      User.adapter.should_not_receive(:write)
+      @user.save
+    end
+  end
 end

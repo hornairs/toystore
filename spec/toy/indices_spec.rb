@@ -4,7 +4,7 @@ describe Toy::Indices do
   uses_constants('User')
 
   before do
-    @redis = Redis.new
+    @redis = Redis.new(:port => 16379)
     @redis.flushdb
     User.adapter :redis, @redis
   end

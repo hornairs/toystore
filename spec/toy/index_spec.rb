@@ -4,7 +4,7 @@ describe Toy::Index do
   uses_constants('User', 'Student', 'Friendship')
 
   before do
-    @redis = Redis.new
+    @redis = Redis.new(:port => 16379)
 
     User.attribute(:ssn, String)
     User.adapter :redis, @redis

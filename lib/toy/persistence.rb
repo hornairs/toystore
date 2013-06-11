@@ -114,6 +114,7 @@ module Toy
 
     # Public: Choke point for overriding how data gets written.
     def persist
+      return true if !changed?
       attrs = persisted_attributes
       Toy.log_with_duration("#{self.class.name} SET #{id}, #{attrs.inspect}") do
         adapter.write(persisted_id, attrs)
